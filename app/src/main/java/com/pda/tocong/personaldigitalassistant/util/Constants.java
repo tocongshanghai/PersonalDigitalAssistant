@@ -63,7 +63,7 @@ public interface Constants {
     String DOWN_LOACD_ADDR = "/download/";
 
     // 接口
-    String IF_mgr_food = "mgr_food";
+    String IF_mgr_food = "mgr_food/";
 
     // 方法
     /**

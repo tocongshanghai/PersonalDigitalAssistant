@@ -9,9 +9,11 @@ import java.util.Map;
 
 import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
-import retrofit2.Call;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
+import rx.Observable;
 
 /**
  * Created by 陶聪
@@ -24,15 +26,22 @@ public class RetrofitUtil {
     private OkHttpClient mOkHttpClient;
     Retrofit mRetrofit;
     RetrofitService mRetrofitService;
+    HttpLoggingInterceptor mHttpLoggingInterceptor;
 
     private RetrofitUtil() {
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
-        mOkHttpClient = new OkHttpClient().newBuilder().cookieJar(new JavaNetCookieJar(cookieManager)).build();
+        mHttpLoggingInterceptor = new HttpLoggingInterceptor();
+        mHttpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        mOkHttpClient = new OkHttpClient()
+                .newBuilder().cookieJar(new JavaNetCookieJar(cookieManager))
+                .addInterceptor(mHttpLoggingInterceptor)
+                .build();
         mRetrofit = new Retrofit.Builder()
                 .client(mOkHttpClient)
                 .baseUrl(Constants.URL)
                 .addConverterFactory(ScalarsConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
         mRetrofitService = mRetrofit.create(RetrofitService.class);
     }
@@ -48,12 +57,12 @@ public class RetrofitUtil {
         return mInstance;
     }
 
-    public static Call<String> asynPost(Map<String,String> params){
-        return getmInstance()._asynPost(params);
+    public static Observable<String> asynPost(String method, Map<String, String> params) {
+        return getmInstance()._asynPost(method,params);
     }
 
-    private Call<String> _asynPost(Map<String, String> params) {
-            return  mRetrofitService.getData(params);
+    private Observable<String> _asynPost(String method,Map<String, String> params) {
+        return mRetrofitService.getData(method,params);
     }
 
 }
